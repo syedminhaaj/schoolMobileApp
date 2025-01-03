@@ -1,0 +1,50 @@
+import React, {useState} from 'react';
+import {View, Text, TextInput, StyleSheet, Button, Alert} from 'react-native';
+
+export default function StudentUpdatePage({route, navigation}) {
+  const {student} = route.params;
+  const [classesAttended, setClassesAttended] = useState('');
+  const [feedback, setFeedback] = useState('');
+
+  const handleUpdate = () => {
+    // Here, you can save the updated details (e.g., via API call or updating state)
+    Alert.alert('Success', 'Details updated successfully!');
+    navigation.goBack(); // Navigate back to the DashboardPage
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.heading}>Update Details for {student.name}</Text>
+      <Text style={styles.label}>Classes Attended:</Text>
+      <TextInput
+        style={styles.input}
+        value={classesAttended}
+        onChangeText={setClassesAttended}
+        placeholder="Enter classes attended"
+        keyboardType="numeric"
+      />
+      <Text style={styles.label}>Feedback:</Text>
+      <TextInput
+        style={styles.input}
+        value={feedback}
+        onChangeText={setFeedback}
+        placeholder="Enter feedback"
+        multiline
+      />
+      <Button title="Update" onPress={handleUpdate} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {flex: 1, padding: 16},
+  heading: {fontSize: 24, marginBottom: 16, textAlign: 'center'},
+  label: {fontSize: 16, marginVertical: 8},
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 16,
+  },
+});

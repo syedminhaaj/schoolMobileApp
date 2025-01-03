@@ -1,117 +1,158 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState, createRef} from 'react';
+import {View, Text, TouchableOpacity, Modal, StyleSheet} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import LoginPage from './src/screens/LoginPage';
+import DashboardPage from './src/screens/DashboardPage';
+import AddInstructor from './src/screens/AddInstructor';
+import AddStudent from './src/screens/AddStudent';
+import StudentUpdatePage from './src/screens/StudentUpdate';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+const navigationRef = createRef();
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const Stack = createNativeStackNavigator();
+  const Tab = createBottomTabNavigator();
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const DashboardStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="DashboardPage" component={DashboardPage} />
+      <Stack.Screen name="AddInstructor" component={AddInstructor} />
+      <Stack.Screen name="AddStudent" component={AddStudent} />
+      <Stack.Screen name="StudentUpdatePage" component={StudentUpdatePage} />
+    </Stack.Navigator>
+  );
+
+  const TabNavigator = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const openModal = () => {
+      setModalVisible(true);
+    };
+
+    const closeModal = () => {
+      setModalVisible(false);
+    };
+
+    return (
+      <>
+        <Tab.Navigator
+          screenOptions={({route}) => ({
+            tabBarIcon: ({focused, color, size}) => {
+              let iconName;
+              if (route.name === 'Home') {
+                iconName = focused ? 'home' : 'home-outline';
+              } else if (route.name === 'Add') {
+                iconName = focused ? 'add-circle' : 'add-circle-outline';
+              } else if (route.name === 'Profile') {
+                iconName = focused ? 'person' : 'person-outline';
+              }
+              return <Icon name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: 'tomato',
+            tabBarInactiveTintColor: 'gray',
+          })}>
+          <Tab.Screen name="Home" component={DashboardStack} />
+          <Tab.Screen
+            name="Add"
+            component={() => null}
+            listeners={{
+              tabPress: e => {
+                e.preventDefault();
+                openModal();
+              },
+            }}
+          />
+          <Tab.Screen name="Profile" component={LoginPage} />
+        </Tab.Navigator>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={closeModal}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>What would you like to add?</Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  closeModal();
+                  navigationRef.current?.navigate('AddStudent');
+                }}>
+                <Text style={styles.modalButtonText}>Add Student</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  closeModal();
+                  navigationRef.current?.navigate('AddInstructor');
+                }}>
+                <Text style={styles.modalButtonText}>Add Instructor</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={closeModal}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </>
+    );
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <NavigationContainer ref={navigationRef}>
+        <TabNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
   },
-  sectionDescription: {
-    marginTop: 8,
+  modalTitle: {
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  highlight: {
-    fontWeight: '700',
+  modalButton: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: 'tomato',
+    borderRadius: 5,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  cancelButton: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: 'gray',
+    fontSize: 16,
   },
 });
 
