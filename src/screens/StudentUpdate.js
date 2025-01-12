@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, StyleSheet, Button, Alert} from 'react-native';
 
-export default function StudentUpdatePage({route, navigation}) {
+export default function ({route, navigation}) {
   const {student} = route.params;
   const [classesAttended, setClassesAttended] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -9,7 +9,7 @@ export default function StudentUpdatePage({route, navigation}) {
   const handleUpdate = () => {
     // Here, you can save the updated details (e.g., via API call or updating state)
     Alert.alert('Success', 'Details updated successfully!');
-    navigation.goBack(); // Navigate back to the DashboardPage
+    navigation.goBack();
   };
 
   return (

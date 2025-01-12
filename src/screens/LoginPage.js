@@ -1,19 +1,78 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Button, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 
-const LoginPage = ({navigation}) => {
+const AuthPage = ({navigation}) => {
+  const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Sign Up
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleLogin = () => {
-    // Handle login logic
-    navigation.navigate('Home');
+  const BASE_URL = 'http://localhost:3000'; // Replace with your server's IP address or domain
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password}),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Alert.alert('Success', data.message, [
+          {text: 'OK', onPress: () => navigation.navigate('Home')},
+        ]);
+      } else {
+        Alert.alert('Error', data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred while logging in.');
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/signup`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, password}),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Alert.alert('Success', data.message, [
+          {text: 'OK', onPress: () => navigation.navigate('Home')},
+        ]);
+      } else {
+        Alert.alert('Error', data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred while signing up.');
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.heading}>Login</Text>
+        <Text style={styles.heading}>{isLogin ? 'Login' : 'Sign Up'}</Text>
+
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -28,7 +87,28 @@ const LoginPage = ({navigation}) => {
           onChangeText={setPassword}
           secureTextEntry
         />
-        <Button title="Login" onPress={handleLogin} />
+        {!isLogin && (
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+        )}
+
+        <Button
+          title={isLogin ? 'Login' : 'Sign Up'}
+          onPress={isLogin ? handleLogin : handleSignUp}
+        />
+
+        <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+          <Text style={styles.switchText}>
+            {isLogin
+              ? "Don't have an account? Sign Up"
+              : 'Already have an account? Login'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -39,15 +119,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5', // Light background for contrast
+    backgroundColor: '#f5f5f5',
   },
   card: {
     width: '90%',
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 10,
-    elevation: 5, // Android shadow
-    shadowColor: '#000', // iOS shadow
+    elevation: 5,
+    shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -66,6 +146,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 10,
   },
+  switchText: {
+    marginTop: 20,
+    textAlign: 'center',
+    color: '#007BFF',
+  },
 });
 
-export default LoginPage;
+export default AuthPage;

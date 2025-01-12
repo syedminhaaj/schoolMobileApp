@@ -11,6 +11,7 @@ const packageData = [
   {key: 'gold', label: 'Gold'},
   {key: 'silver', label: 'Silver'},
 ];
+
 export default function AddStudent({navigation}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ export default function AddStudent({navigation}) {
   const [selectLicense, setSelectLicense] = useState('');
   const [selectPackage, setSelectPackage] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log({name, email, licenseNumber, roadTestDate});
     const studentData = {
       name,
@@ -32,7 +33,28 @@ export default function AddStudent({navigation}) {
       roadTestDate: hasRoadTest ? roadTestDate : 'N/A',
     };
 
-    navigation.navigate('DashboardPage', {newStudent: studentData});
+    try {
+      const response = await fetch('http://localhost:3000/addStudent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(studentData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Student added successfully!');
+        navigation.navigate('DashboardPage', {newStudent: studentData});
+      } else {
+        alert(`Failed to add student: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error submitting student data:', error);
+      alert('An error occurred while adding the student.');
+    }
+    //navigation.navigate('DashboardPage', {newStudent: studentData});
   };
 
   return (
