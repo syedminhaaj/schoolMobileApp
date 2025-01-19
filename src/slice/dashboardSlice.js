@@ -17,6 +17,7 @@ const dashboardSlice = createSlice({
     students: [],
     instructors: [],
     loading: false,
+    isAuthenticated: false,
     error: null,
   },
   reducers: {
@@ -43,6 +44,13 @@ const dashboardSlice = createSlice({
         state.instructors[index] = action.payload;
       }
     },
+
+    login(state) {
+      state.isAuthenticated = true;
+    },
+    logout(state) {
+      state.isAuthenticated = false;
+    },
   },
   extraReducers: builder => {
     builder
@@ -68,6 +76,8 @@ export const {
   addInstructor,
   updateInstructor,
   setInstructors,
+  login,
+  logout,
 } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

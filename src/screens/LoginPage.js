@@ -8,15 +8,19 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import {useDispatch} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
+import {login} from '../slice/dashboardSlice';
 
-const AuthPage = ({navigation}) => {
+const AuthPage = ({}) => {
   const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Sign Up
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const BASE_URL = 'http://localhost:3000'; // Replace with your server's IP address or domain
-
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
   const handleLogin = async () => {
     try {
       const response = await fetch(`${BASE_URL}/login`, {
@@ -29,8 +33,9 @@ const AuthPage = ({navigation}) => {
 
       if (data.success) {
         Alert.alert('Success', data.message, [
-          {text: 'OK', onPress: () => navigation.navigate('Home')},
+          {text: 'OK', onPress: () => navigation.navigate('DashboardPage')},
         ]);
+        dispatch(login());
       } else {
         Alert.alert('Error', data.message);
       }
