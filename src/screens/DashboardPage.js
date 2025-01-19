@@ -7,36 +7,41 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import {fetchStudents} from '../service/fetchApi'; // Adjust the path as needed
-import {fetchInstructors} from '../service/fetchApi'; // Adjust the path as needed
+
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  fetchDashboardData,
+  addStudent,
+  addInstructor,
+} from '../slice/dashboardSlice';
 
 export default function DashboardPage({route, navigation}) {
-  const [students, setStudents] = useState([]);
-  const [instructors, setInstructors] = useState([]);
+  const dispatch = useDispatch();
+  const {students, instructors, loading, error} = useSelector(
+    state => state.dashboard,
+  );
 
-  // Fetch students and instructors
   useEffect(() => {
-    const getStudentsAndInstructors = async () => {
-      try {
-        const studentData = await fetchStudents();
-        const instructorData = await fetchInstructors();
+    dispatch(fetchDashboardData());
+  }, [dispatch]);
 
-        setStudents(studentData);
-        setInstructors(instructorData);
-      } catch (error) {
-        Alert.alert('Error', 'Failed to fetch data. Please try again.');
-      }
-    };
-
-    getStudentsAndInstructors();
-  }, []);
-
-  // Add new student to the list if passed via navigation
+  // Handle new student or instructor addition
   useEffect(() => {
     if (route.params?.newStudent) {
-      setStudents(prev => [...prev, route.params.newStudent]);
+      dispatch(addStudent(route.params.newStudent));
     }
-  }, [route.params?.newStudent]);
+    if (route.params?.newInstructor) {
+      dispatch(addInstructor(route.params.newInstructor));
+    }
+  }, [route.params, dispatch]);
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (error) {
+    return <Text>Error: {error}</Text>;
+  }
 
   const renderStudentItem = ({item}) => (
     <TouchableOpacity
@@ -70,8 +75,6 @@ export default function DashboardPage({route, navigation}) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Dashboard</Text>
-
       {/* Student List Section */}
       <View style={styles.listContainer}>
         <Text style={styles.sectionHeading}>Student List</Text>

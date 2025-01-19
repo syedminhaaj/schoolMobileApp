@@ -5,9 +5,9 @@ export default function ({route, navigation}) {
   const {student} = route.params;
   const [classesAttended, setClassesAttended] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [email, setEmail] = useState(student.email);
 
   const handleUpdate = () => {
-    // Here, you can save the updated details (e.g., via API call or updating state)
     Alert.alert('Success', 'Details updated successfully!');
     navigation.goBack();
   };
@@ -15,6 +15,12 @@ export default function ({route, navigation}) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Update Details for {student.name}</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email address"
+      />
       <Text style={styles.label}>Classes Attended:</Text>
       <TextInput
         style={styles.input}

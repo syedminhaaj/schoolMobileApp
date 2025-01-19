@@ -5,12 +5,15 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {Provider} from 'react-redux';
+import store from './src/store/store';
 
 import LoginPage from './src/screens/LoginPage';
 import DashboardPage from './src/screens/DashboardPage';
 import AddInstructor from './src/screens/AddInstructor';
 import AddStudent from './src/screens/AddStudent';
 import StudentUpdatePage from './src/screens/StudentUpdate';
+import InstructorUpdatePage from './src/screens/InstructorUpdatePage';
 
 const navigationRef = createRef();
 
@@ -19,12 +22,18 @@ function App(): React.JSX.Element {
   const Tab = createBottomTabNavigator();
 
   const DashboardStack = () => (
-    <Stack.Navigator>
-      <Stack.Screen name="DashboardPage" component={DashboardPage} />
-      <Stack.Screen name="AddInstructor" component={AddInstructor} />
-      <Stack.Screen name="AddStudent" component={AddStudent} />
-      <Stack.Screen name="StudentUpdatePage" component={StudentUpdatePage} />
-    </Stack.Navigator>
+    <Provider store={store}>
+      <Stack.Navigator>
+        <Stack.Screen name="DashboardPage" component={DashboardPage} />
+        <Stack.Screen name="AddInstructor" component={AddInstructor} />
+        <Stack.Screen name="AddStudent" component={AddStudent} />
+        <Stack.Screen name="StudentUpdatePage" component={StudentUpdatePage} />
+        <Stack.Screen
+          name="InstructorUpdatePage"
+          component={InstructorUpdatePage}
+        />
+      </Stack.Navigator>
+    </Provider>
   );
 
   const TabNavigator = () => {

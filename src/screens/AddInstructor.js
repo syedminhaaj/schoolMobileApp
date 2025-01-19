@@ -1,15 +1,32 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Button, StyleSheet} from 'react-native';
 
+import {addInstructors} from '../service/instructorApi';
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  fetchDashboardData,
+  addStudent,
+  addInstructor,
+} from '../slice/dashboardSlice';
 export default function AddInstructor({navigation}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const handleSubmit = () => {
-    // Handle instructor submission logic
-    console.log({name, email, password});
-    navigation.goBack();
+  const dispatch = useDispatch();
+  const handleSubmit = async () => {
+    try {
+      const InstructorData = {name: name, email: email, password: password};
+      const result = await addInstructors(InstructorData);
+      if (result) {
+        navigation.goBack();
+        dispatch(addInstructor(InstructorData));
+      } else {
+        alert('Failed to add student');
+      }
+    } catch (error) {
+      console.error('Error submitting student data:', error);
+      alert('An error occurred while submitting the data.');
+    }
   };
 
   return (

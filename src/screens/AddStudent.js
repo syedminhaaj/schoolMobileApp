@@ -1,7 +1,10 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Switch} from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
-
+import {addStudentApi} from '../service/studentApi';
+import {useDispatch, useSelector} from 'react-redux';
+import {addStudent} from '../slice/dashboardSlice';
+import {selectInstructorList} from '../selector/instructorSelector';
 const licenseData = [
   {key: 'g2', label: 'G2 License'},
   {key: 'G', label: 'G License'},
@@ -21,7 +24,35 @@ export default function AddStudent({navigation}) {
   const [roadTestDate, setRoadTestDate] = useState('');
   const [selectLicense, setSelectLicense] = useState('');
   const [selectPackage, setSelectPackage] = useState('');
+  const [instructors, setInstructors] = useState([]);
+  const [selectedInstructor, setSelectedInstructor] = useState('');
+  const dispatch = useDispatch();
 
+  const instructorsList = useSelector(selectInstructorList);
+  useEffect(() => {
+    // Map instructorsList to the format required by ModalSelector
+    const formattedData = instructorsList.map(instructor => ({
+      key: instructor.id,
+      label: instructor.name,
+    }));
+    setInstructors(formattedData);
+  }, [instructorsList]);
+  // useEffect(() => {
+  //   // Fetch the list of instructors when the component mounts
+  //   const loadInstructors = async () => {
+  //     try {
+  //       //const data = await fetchInstructors();
+  //       const formattedData = instructorsList.map((instructor, index) => ({
+  //         key: instructor.id,
+  //         label: instructor.name,
+  //       }));
+  //       setInstructors(formattedData);
+  //     } catch (error) {
+  //       console.error('Error fetching instructors:', error);
+  //     }
+  //   };
+  //   loadInstructors();
+  // }, []);
   const handleSubmit = async () => {
     console.log({name, email, licenseNumber, roadTestDate});
     const studentData = {
@@ -31,30 +62,21 @@ export default function AddStudent({navigation}) {
       licenseExam: selectLicense,
       packageType: selectPackage,
       roadTestDate: hasRoadTest ? roadTestDate : 'N/A',
+      instructorId: selectedInstructor,
     };
 
     try {
-      const response = await fetch('http://localhost:3000/addStudent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(studentData),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert('Student added successfully!');
-        navigation.navigate('DashboardPage', {newStudent: studentData});
+      const result = await addStudentApi(studentData);
+      if (result) {
+        navigation.navigate('DashboardPage');
+        dispatch(addStudent(studentData));
       } else {
-        alert(`Failed to add student: ${result.message}`);
+        alert('Failed to add student');
       }
     } catch (error) {
       console.error('Error submitting student data:', error);
-      alert('An error occurred while adding the student.');
+      alert('An error occurred while submitting the data.');
     }
-    //navigation.navigate('DashboardPage', {newStudent: studentData});
   };
 
   return (
@@ -101,6 +123,24 @@ export default function AddStudent({navigation}) {
           </Text>
         </ModalSelector>
       </View>
+      {instructors.length > 0 && (
+        <View style={{padding: 16}}>
+          <ModalSelector
+            data={instructors}
+            initValue=""
+            onChange={option => setSelectedInstructor(option.key)}>
+            <Text style={{color: selectedInstructor ? 'black' : 'gray'}}>
+              {selectedInstructor
+                ? `Instructor: ${
+                    instructors.find(
+                      instructor => instructor.key === selectedInstructor,
+                    )?.label
+                  }`
+                : 'Select an instructor'}
+            </Text>
+          </ModalSelector>
+        </View>
+      )}
 
       <View style={styles.switchContainer}>
         <Text>Has Road Test:</Text>
