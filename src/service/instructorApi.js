@@ -7,7 +7,7 @@ export const fetchInstructors = async () => {
     const response = await axios.get(`${BASE_URL}/instructor`);
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching students:', error);
+    console.error('Error fetching instructor:', error);
     throw error;
   }
 };

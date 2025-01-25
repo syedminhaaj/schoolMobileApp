@@ -30,9 +30,10 @@ export default function AddStudent({navigation}) {
 
   const instructorsList = useSelector(selectInstructorList);
   useEffect(() => {
+    console.log('selectInstructorList------->', instructorsList);
     // Map instructorsList to the format required by ModalSelector
     const formattedData = instructorsList.map(instructor => ({
-      key: instructor.id,
+      key: `${instructor.id}`,
       label: instructor.name,
     }));
     setInstructors(formattedData);
@@ -123,12 +124,15 @@ export default function AddStudent({navigation}) {
           </Text>
         </ModalSelector>
       </View>
+
       {instructors.length > 0 && (
         <View style={{padding: 16}}>
           <ModalSelector
             data={instructors}
-            initValue=""
-            onChange={option => setSelectedInstructor(option.key)}>
+            initValue="select an instructor"
+            onChange={option => {
+              setSelectedInstructor(option.key);
+            }}>
             <Text style={{color: selectedInstructor ? 'black' : 'gray'}}>
               {selectedInstructor
                 ? `Instructor: ${

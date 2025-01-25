@@ -75,11 +75,9 @@ export default function DashboardPage({route, navigation}) {
 
   return (
     <View style={styles.container}>
-      {/* Student List Section */}
       <View style={styles.listContainer}>
         <Text style={styles.sectionHeading}>Student List</Text>
 
-        {/* Table Header for Students */}
         <View style={styles.tableHeader}>
           <Text style={styles.tableHeaderCell}>Name</Text>
           <Text style={styles.tableHeaderCell}>Email</Text>

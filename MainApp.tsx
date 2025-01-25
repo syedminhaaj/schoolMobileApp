@@ -14,6 +14,7 @@ import AddInstructor from './src/screens/AddInstructor';
 import AddStudent from './src/screens/AddStudent';
 import StudentUpdatePage from './src/screens/StudentUpdate';
 import InstructorUpdatePage from './src/screens/InstructorUpdatePage';
+import UpdateLessonPage from './src/screens/UpdateLessonPage';
 
 const navigationRef = createRef();
 
@@ -27,6 +28,8 @@ function MainApp(): React.JSX.Element {
       <Stack.Screen name="AddInstructor" component={AddInstructor} />
       <Stack.Screen name="AddStudent" component={AddStudent} />
       <Stack.Screen name="StudentUpdatePage" component={StudentUpdatePage} />
+      <Stack.Screen name="UpdateLessonPage" component={UpdateLessonPage} />
+
       <Stack.Screen
         name="InstructorUpdatePage"
         component={InstructorUpdatePage}
@@ -37,16 +40,26 @@ function MainApp(): React.JSX.Element {
   const TabNavigator = () => {
     const dispatch = useDispatch();
     const [modalVisible, setModalVisible] = useState(false);
+    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
     const isAuthenticated = useSelector(
       state => state.dashboard.isAuthenticated,
     );
-    // const isAuthenticated = true;
+
     const openModal = () => {
       setModalVisible(true);
     };
 
     const closeModal = () => {
       setModalVisible(false);
+    };
+
+    const confirmLogout = () => {
+      setLogoutModalVisible(true);
+    };
+
+    const handleLogout = () => {
+      setLogoutModalVisible(false);
+      dispatch(logout());
     };
 
     return (
@@ -83,7 +96,10 @@ function MainApp(): React.JSX.Element {
               name="Logout"
               component={() => null}
               listeners={{
-                tabPress: () => dispatch(logout()),
+                tabPress: e => {
+                  e.preventDefault();
+                  confirmLogout();
+                },
               }}
             />
           )}
@@ -117,6 +133,30 @@ function MainApp(): React.JSX.Element {
                 style={styles.cancelButton}
                 onPress={closeModal}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={logoutModalVisible}
+          onRequestClose={() => setLogoutModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                Are you sure you want to logout?
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleLogout}>
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setLogoutModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>No</Text>
               </TouchableOpacity>
             </View>
           </View>
