@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import {
   View,
   Text,
@@ -8,23 +9,39 @@ import {
   ScrollView,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import {updateLesson} from '../service/lessonApi';
+
+import {updateLessonApi} from '../service/lessonApi';
+import {updateLesson} from '../slice/dashboardSlice';
 
 export default function UpdateLessonPage({route, navigation}) {
-  const {lesson, studentId} = route.params;
+  const dispatch = useDispatch();
+  const {students} = useSelector(state => state.dashboard);
+  const {lesson, studentId, studentName} = route.params;
 
-  const [attributes, setAttributes] = useState({
-    parallelParking: false,
-    reverseParking: false,
-    laneChange: false,
-    threePointTurn: false,
-    leftTurn: false,
-    speed: false,
-  });
+  // Find the current student
+  const currentStudent = students.find(stud => stud.id === studentId);
 
-  useEffect(() => {
-    console.log('Student ID:', studentId);
-  }, []);
+  // Find the specific lesson by title
+  const lessons = currentStudent?.lessons || {};
+
+  const currentLessonKey = Object.keys(lessons).find(
+    key => lessons[key]?.title?.toLowerCase() === lesson?.title?.toLowerCase(),
+  );
+  const currentLesson = currentLessonKey ? lessons[currentLessonKey] : null;
+
+  // Initialize attributes with the lesson details or default values
+  const [attributes, setAttributes] = useState(
+    currentLesson?.attributes || {
+      parallelParking: false,
+      reverseParking: false,
+      laneChange: false,
+      threePointTurn: false,
+      leftTurn: false,
+      speed: false,
+    },
+  );
+
+  useEffect(() => {}, [currentStudent, currentLesson]);
 
   const handleCheckboxChange = key => {
     setAttributes(prev => ({...prev, [key]: !prev[key]}));
@@ -32,15 +49,27 @@ export default function UpdateLessonPage({route, navigation}) {
 
   const handleSave = async () => {
     const updatedData = {
+      studentId: studentId,
       lessonTitle: lesson.title,
+      lessonId: currentLesson?.id,
       attributes,
     };
 
     try {
-      const response = await updateLesson(studentId, updatedData);
+      const response = await updateLessonApi(updatedData);
 
       if (response.success) {
-        Alert.alert('Success', 'The lesson details have been updated.');
+        Alert.alert('Success', 'The lesson details have been updated');
+        console.log('response after lesson add', response);
+        console.log('currentLesson *****', currentLesson);
+        dispatch(
+          updateLesson({
+            studentId: studentId,
+            lessonTitle: response.lesson.title,
+            lessonId: response.lessonId,
+            attributes,
+          }),
+        );
         navigation.goBack();
       } else {
         Alert.alert('Error', response.message || 'Failed to update lesson.');
@@ -53,7 +82,9 @@ export default function UpdateLessonPage({route, navigation}) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>{lesson.title} - Update Details</Text>
+      <Text style={styles.heading}>
+        {studentName} - {lesson?.title}
+      </Text>
       {Object.keys(attributes).map(key => (
         <View style={styles.checkboxContainer} key={key}>
           <CheckBox
@@ -102,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: 'black',
+    fontSize: 18,
   },
 });

@@ -1,10 +1,22 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, Switch} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Switch,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
-import {addStudentApi} from '../service/studentApi';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useDispatch, useSelector} from 'react-redux';
+import {addStudentApi} from '../service/studentApi';
 import {addStudent} from '../slice/dashboardSlice';
 import {selectInstructorList} from '../selector/instructorSelector';
+
 const licenseData = [
   {key: 'g2', label: 'G2 License'},
   {key: 'G', label: 'G License'},
@@ -29,33 +41,16 @@ export default function AddStudent({navigation}) {
   const dispatch = useDispatch();
 
   const instructorsList = useSelector(selectInstructorList);
+
   useEffect(() => {
-    console.log('selectInstructorList------->', instructorsList);
-    // Map instructorsList to the format required by ModalSelector
     const formattedData = instructorsList.map(instructor => ({
       key: `${instructor.id}`,
       label: instructor.name,
     }));
     setInstructors(formattedData);
   }, [instructorsList]);
-  // useEffect(() => {
-  //   // Fetch the list of instructors when the component mounts
-  //   const loadInstructors = async () => {
-  //     try {
-  //       //const data = await fetchInstructors();
-  //       const formattedData = instructorsList.map((instructor, index) => ({
-  //         key: instructor.id,
-  //         label: instructor.name,
-  //       }));
-  //       setInstructors(formattedData);
-  //     } catch (error) {
-  //       console.error('Error fetching instructors:', error);
-  //     }
-  //   };
-  //   loadInstructors();
-  // }, []);
+
   const handleSubmit = async () => {
-    console.log({name, email, licenseNumber, roadTestDate});
     const studentData = {
       name,
       email,
@@ -81,91 +76,96 @@ export default function AddStudent({navigation}) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Add Student</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="License Number"
-        value={licenseNumber}
-        onChangeText={setLicenseNumber}
-      />
-      <View style={{padding: 16}}>
-        <ModalSelector
-          data={licenseData}
-          initValue=""
-          onChange={option => setSelectLicense(option.label)}>
-          <Text style={{color: selectLicense ? 'black' : 'gray'}}>
-            {'Choose your License Exam: ' + selectLicense ||
-              'Select your license exam'}
-          </Text>
-        </ModalSelector>
-      </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.container}
+        extraScrollHeight={20}
+        enableOnAndroid={true}
+        enableAutomaticScroll={Platform.OS === 'ios'}>
+        <Text style={styles.heading}>Add Student</Text>
 
-      <View style={{padding: 16}}>
-        <ModalSelector
-          data={packageData}
-          initValue=""
-          onChange={option => setSelectPackage(option.label)}>
-          <Text style={{color: selectPackage ? 'black' : 'gray'}}>
-            {'Select your package: ' + selectPackage}
-          </Text>
-        </ModalSelector>
-      </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="License Number"
+          value={licenseNumber}
+          onChangeText={setLicenseNumber}
+        />
 
-      {instructors.length > 0 && (
         <View style={{padding: 16}}>
           <ModalSelector
-            data={instructors}
-            initValue="select an instructor"
-            onChange={option => {
-              setSelectedInstructor(option.key);
-            }}>
-            <Text style={{color: selectedInstructor ? 'black' : 'gray'}}>
-              {selectedInstructor
-                ? `Instructor: ${
-                    instructors.find(
-                      instructor => instructor.key === selectedInstructor,
-                    )?.label
-                  }`
-                : 'Select an instructor'}
+            data={licenseData}
+            initValue=""
+            onChange={option => setSelectLicense(option.label)}>
+            <Text style={{color: selectLicense ? 'black' : 'gray'}}>
+              {'Choose your License Exam: ' + selectLicense}
             </Text>
           </ModalSelector>
         </View>
-      )}
 
-      <View style={styles.switchContainer}>
-        <Text>Has Road Test:</Text>
-        <Switch value={hasRoadTest} onValueChange={setHasRoadTest} />
-      </View>
+        <View style={{padding: 16}}>
+          <ModalSelector
+            data={packageData}
+            initValue=""
+            onChange={option => setSelectPackage(option.label)}>
+            <Text style={{color: selectPackage ? 'black' : 'gray'}}>
+              {'Select your package: ' + selectPackage}
+            </Text>
+          </ModalSelector>
+        </View>
 
-      <TextInput
-        style={[styles.input, !hasRoadTest && styles.disabledInput]}
-        placeholder="Road Test Date"
-        value={roadTestDate}
-        onChangeText={setRoadTestDate}
-        editable={hasRoadTest}
-      />
+        {instructors.length > 0 && (
+          <View style={{padding: 16}}>
+            <ModalSelector
+              data={instructors}
+              initValue="Select an instructor"
+              onChange={option => setSelectedInstructor(option.key)}>
+              <Text style={{color: selectedInstructor ? 'black' : 'gray'}}>
+                {selectedInstructor
+                  ? `Instructor: ${
+                      instructors.find(
+                        instructor => instructor.key === selectedInstructor,
+                      )?.label
+                    }`
+                  : 'Select an instructor'}
+              </Text>
+            </ModalSelector>
+          </View>
+        )}
 
-      <Button title="Submit" onPress={handleSubmit} />
-    </View>
+        <View style={styles.switchContainer}>
+          <Text>Has Road Test:</Text>
+          <Switch value={hasRoadTest} onValueChange={setHasRoadTest} />
+        </View>
+
+        <TextInput
+          style={[styles.input, !hasRoadTest && styles.disabledInput]}
+          placeholder="Road Test Date"
+          value={roadTestDate}
+          onChangeText={setRoadTestDate}
+          editable={hasRoadTest}
+        />
+
+        <Button title="Submit" onPress={handleSubmit} />
+      </KeyboardAwareScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, justifyContent: 'center', padding: 16},
+  container: {padding: 16, flexGrow: 1},
   heading: {fontSize: 24, textAlign: 'center', marginBottom: 16},
   input: {
     height: 40,

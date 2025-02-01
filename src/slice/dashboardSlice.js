@@ -1,6 +1,7 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import {fetchStudents} from '../service/studentApi';
 import {fetchInstructors} from '../service/instructorApi';
+
 // Async Thunks for fetching data
 export const fetchDashboardData = createAsyncThunk(
   'dashboard/fetchDashboardData',
@@ -45,6 +46,71 @@ const dashboardSlice = createSlice({
       }
     },
 
+    updateLesson(state, action) {
+      const {studentId, lessonTitle, attributes} = action.payload;
+
+      // Find the student by ID
+      const studentIndex = state.students.findIndex(
+        student => student.id === studentId,
+      );
+
+      if (studentIndex !== -1) {
+        let lessons = state.students[studentIndex].lessons || {};
+
+        // Find the existing lesson by title
+        const lessonKey = Object.keys(lessons).find(
+          key => lessons[key]?.title === lessonTitle,
+        );
+
+        if (lessonKey) {
+          // Update existing lesson attributes immutably
+          console.log('if condition', lessonKey);
+          lessons = {
+            ...lessons,
+            [lessonKey]: {
+              ...lessons[lessonKey],
+              ...action.payload,
+            },
+          };
+        } else {
+          // Assign a new key and add the new lesson if it doesn't exist
+          const newLesson = action.payload;
+          console.log('action payload from slice reducer', action.payload);
+          lessons = {
+            ...lessons,
+            [newLesson.lessonId]: {
+              lessonId: newLesson.lessonId,
+              lessonTitle: newLesson.lessonTitle,
+              attributes: newLesson.attributes,
+            },
+          };
+        }
+        // Update the student lessons
+        state.students[studentIndex].lessons = lessons;
+      }
+    },
+    removeLesson(state, action) {
+      const {studentId, lessonId} = action.payload;
+
+      const studentIndex = state.students.findIndex(
+        student => student.id === studentId,
+      );
+
+      if (studentIndex !== -1) {
+        const lessons = state.students[studentIndex].lessons || {};
+        const updatedLessons = {...lessons};
+
+        // Remove the lesson by key
+        for (const key in updatedLessons) {
+          if (updatedLessons[key]?.id === lessonId) {
+            delete updatedLessons[key];
+            break;
+          }
+        }
+
+        state.students[studentIndex].lessons = updatedLessons;
+      }
+    },
     login(state) {
       state.isAuthenticated = true;
     },
@@ -76,6 +142,8 @@ export const {
   addInstructor,
   updateInstructor,
   setInstructors,
+  updateLesson,
+  removeLesson,
   login,
   logout,
 } = dashboardSlice.actions;

@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: 'black',
+    fontSize: 18,
   },
   cancelButton: {
     marginTop: 10,

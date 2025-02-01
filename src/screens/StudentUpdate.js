@@ -8,26 +8,30 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+
+import {updateStudentPutApi, deleteLessonApi} from '../service/studentApi';
 import {useSelector, useDispatch} from 'react-redux';
+import {removeLesson} from '../slice/dashboardSlice';
 export default function ({route, navigation}) {
   const {student} = route.params;
-
+  const dispatch = useDispatch();
+  const {students} = useSelector(state => state.dashboard);
   const [classesAttended, setClassesAttended] = useState('');
   const [feedback, setFeedback] = useState('');
   const [email, setEmail] = useState(student.email);
   const [lessons, setLessons] = useState([]);
 
-  const maxLessons = 10; // Maximum number of lessons allowed
-  const {students} = useSelector(state => state.dashboard);
+  const maxLessons = 10;
 
   useEffect(() => {
-    console.log('students-----', students);
-    const initialLesson = {
-      id: 1,
-      title: `Lesson 1`,
-      status: 'Yet to Start',
-    };
-    setLessons([initialLesson]);
+    if (student && student.lessons) {
+      const studentLessons = Object.values(student.lessons).map(lesson => ({
+        id: lesson.id,
+        title: lesson.title,
+        status: lesson.status || 'Yet to Start',
+      }));
+      setLessons(studentLessons);
+    }
   }, []);
 
   const handleAddLesson = () => {
@@ -46,37 +50,66 @@ export default function ({route, navigation}) {
     }
   };
 
-  const handleLessonClick = lessonId => {
-    // setLessons(prevLessons =>
-    //   prevLessons.map(lesson =>
-    //     lesson.id === lessonId
-    //       ? {
-    //           ...lesson,
-    //           status:
-    //             lesson.status === 'Yet to Start'
-    //               ? 'In Progress'
-    //               : lesson.status === 'In Progress'
-    //               ? 'Complete'
-    //               : 'Yet to Start',
-    //         }
-    //       : lesson,
-    //   ),
-    // );
+  const handleDeleteLesson = (lessonId, lessonTitle) => {
+    Alert.alert(
+      'Delete Lesson',
+      `Are you sure you want to delete Lesson ${lessonTitle}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteLessonApi(student.id, lessonId);
+              setLessons(lessons.filter(lesson => lesson.id !== lessonId));
+              dispatch(removeLesson({studentId: student.id, lessonId}));
+              Alert.alert('Success', 'Lesson deleted successfully.');
+            } catch (error) {
+              console.error('Error deleting lesson:', error);
+              Alert.alert('Error', 'Failed to delete the lesson.');
+            }
+          },
+        },
+      ],
+    );
+  };
 
+  const handleLessonClick = lessonId => {
     const selectedLesson = lessons.find(lesson => lesson.id === lessonId);
     navigation.navigate('UpdateLessonPage', {
       lesson: selectedLesson,
       studentId: student.id,
+      studentName: student.name,
     });
   };
 
-  const handleUpdate = () => {
-    Alert.alert('Success', 'Details updated successfully!');
-    navigation.goBack();
+  const handleUpdate = async studentId => {
+    const payload = {
+      email: email,
+      classesAttended: classesAttended,
+      feedback: feedback,
+      lessons: lessons,
+    };
+    try {
+      const resp = await updateStudentPutApi(studentId, payload);
+      if (resp.data.success) {
+        Alert.alert('Success', 'Details updated successfully!');
+        navigation.goBack();
+      } else {
+        Alert.alert('Error', resp.data.message || 'Failed to update details.');
+      }
+    } catch (error) {
+      console.error('Error updating student:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while updating the student details.',
+      );
+    }
   };
 
   const renderLessonItem = lesson => (
-    <TouchableOpacity
+    <View
       key={lesson.id}
       style={[
         styles.lessonItem,
@@ -85,12 +118,20 @@ export default function ({route, navigation}) {
           : lesson.status === 'In Progress'
           ? styles.inProgress
           : styles.yetToStart,
-      ]}
-      onPress={() => handleLessonClick(lesson.id)}>
-      <Text style={styles.lessonText}>
-        {lesson.title} - {lesson.status}
-      </Text>
-    </TouchableOpacity>
+      ]}>
+      <View style={styles.lessonContent}>
+        <TouchableOpacity onPress={() => handleLessonClick(lesson.id)}>
+          <Text style={styles.lessonText}>
+            {lesson.title} - {lesson.status}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteLesson(lesson.id, lesson.title)}>
+          <Text style={styles.deleteButtonText}>X</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -131,8 +172,10 @@ export default function ({route, navigation}) {
             <Text style={styles.addLessonText}>Add Lesson</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
-          <Text style={styles.updateButtonText}>Update</Text>
+        <TouchableOpacity
+          style={styles.updateButton}
+          onPress={() => handleUpdate(student.id)}>
+          <Text style={styles.updateButtonText}>Save</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -140,19 +183,9 @@ export default function ({route, navigation}) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  heading: {
-    fontSize: 24,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 16,
-    marginVertical: 8,
-  },
+  container: {flex: 1, padding: 16},
+  heading: {fontSize: 24, marginBottom: 16, textAlign: 'center'},
+  label: {fontSize: 16, marginVertical: 8},
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -160,53 +193,53 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 16,
   },
-  lessonsContainer: {
-    flex: 1,
-    marginBottom: 16,
-  },
+  lessonsContainer: {flex: 1, marginBottom: 16},
   lessonItem: {
     padding: 12,
-    marginVertical: 6,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  lessonContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  lessonText: {fontSize: 18, color: 'black'},
+  deleteButton: {
+    backgroundColor: 'red',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
   },
-  lessonText: {
-    fontSize: 16,
-    color: '#fff',
-  },
-  yetToStart: {
-    backgroundColor: '#ffcccb', // Red for "Yet to Start"
-  },
-  inProgress: {
-    backgroundColor: '#ffd700', // Yellow for "In Progress"
-  },
-  complete: {
-    backgroundColor: '#90ee90', // Green for "Complete"
-  },
+  deleteButtonText: {color: 'black', fontSize: 18},
+  yetToStart: {backgroundColor: '#ffcccb'},
+  inProgress: {backgroundColor: '#ffd700'},
+  complete: {backgroundColor: '#90ee90'},
   fixedFooter: {
     position: 'absolute',
     bottom: 16,
     left: 16,
     right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   addLessonButton: {
     backgroundColor: 'tomato',
-    padding: 12,
+    padding: 8,
     borderRadius: 5,
-    marginBottom: 10,
+    flex: 1,
+    marginRight: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  addLessonText: {
-    color: 'white',
-    fontSize: 16,
-  },
+  addLessonText: {color: 'black', fontSize: 18},
   updateButton: {
     backgroundColor: 'tomato',
-    padding: 12,
+    padding: 8,
     borderRadius: 5,
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  updateButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
+  updateButtonText: {color: 'black', fontSize: 18},
 });

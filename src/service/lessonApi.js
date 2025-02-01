@@ -13,9 +13,9 @@ export const getLessons = async () => {
   }
 };
 
-export const updateLesson = async (id, updatedData) => {
+export const updateLessonApi = async updatedData => {
   try {
-    const response = await fetch(`${BASE_URL}/addStudent/${id}/lessons`, {
+    const response = await fetch(`${BASE_URL}/addStudent/lessons`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
