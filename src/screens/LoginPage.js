@@ -7,21 +7,25 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {login} from '../slice/dashboardSlice';
+import {BASE_URL} from '../service/baseUrl';
 
 const AuthPage = ({}) => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Sign Up
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const BASE_URL = 'http://localhost:3000'; // Replace with your server's IP address or domain
   const dispatch = useDispatch();
   const navigation = useNavigation();
+
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
@@ -30,7 +34,7 @@ const AuthPage = ({}) => {
       });
 
       const data = await response.json();
-
+      setLoading(false);
       if (data.success) {
         Alert.alert('Success', data.message, [
           {text: 'OK', onPress: () => navigation.navigate('DashboardPage')},
@@ -40,6 +44,7 @@ const AuthPage = ({}) => {
         Alert.alert('Error', data.message);
       }
     } catch (error) {
+      setLoading(false);
       console.error(error);
       Alert.alert('Error', 'An error occurred while logging in.');
     }
@@ -51,6 +56,7 @@ const AuthPage = ({}) => {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/signup`, {
         method: 'POST',
@@ -59,6 +65,7 @@ const AuthPage = ({}) => {
       });
 
       const data = await response.json();
+      setLoading(false);
 
       if (data.success) {
         Alert.alert('Success', data.message, [
@@ -68,6 +75,7 @@ const AuthPage = ({}) => {
         Alert.alert('Error', data.message);
       }
     } catch (error) {
+      setLoading(false);
       console.error(error);
       Alert.alert('Error', 'An error occurred while signing up.');
     }
@@ -75,46 +83,54 @@ const AuthPage = ({}) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.heading}>{isLogin ? 'Login' : 'Sign Up'}</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#007BFF" />
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.heading}>{isLogin ? 'Login' : 'Sign Up'}</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        {!isLogin && (
           <TextInput
             style={styles.input}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
           />
-        )}
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            textContentType="password" // Important for iOS autofill
+            autoComplete="password"
+          />
+          {!isLogin && (
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={true}
+              textContentType="password" // Important for iOS autofill
+              autoComplete="password"
+            />
+          )}
 
-        <Button
-          title={isLogin ? 'Login' : 'Sign Up'}
-          onPress={isLogin ? handleLogin : handleSignUp}
-        />
+          <Button
+            title={isLogin ? 'Login' : 'Sign Up'}
+            onPress={isLogin ? handleLogin : handleSignUp}
+          />
 
-        <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.switchText}>
-            {isLogin
-              ? "Don't have an account? Sign Up"
-              : 'Already have an account? Login'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+            <Text style={styles.switchText}>
+              {isLogin
+                ? "Don't have an account? Sign Up"
+                : 'Already have an account? Login'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

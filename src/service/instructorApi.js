@@ -1,6 +1,7 @@
 import axios from 'axios';
+import {BASE_URL} from './baseUrl';
 
-const BASE_URL = 'http://localhost:3000';
+//const BASE_URL = 'http://localhost:3000';
 
 export const fetchInstructors = async () => {
   try {

@@ -1,11 +1,12 @@
 import axios from 'axios';
+import {BASE_URL} from './baseUrl';
 
-const BASE_URL = 'http://localhost:3000/addStudent';
+//const BASE_URL = 'http://localhost:3000/addStudent';
 
 // Fetch all students
 export const fetchStudents = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}`);
+    const response = await axios.get(`${BASE_URL}/addStudent`);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching students:', error);
@@ -15,7 +16,7 @@ export const fetchStudents = async () => {
 
 export const addStudentApi = async studentData => {
   try {
-    const response = await axios.post(`${BASE_URL}`, studentData);
+    const response = await axios.post(`${BASE_URL}/addStudent`, studentData);
     return response.data;
   } catch (error) {
     console.error('Error adding student:', error);
@@ -25,7 +26,7 @@ export const addStudentApi = async studentData => {
 
 export const updateStudentPutApi = async (id, updatedData) => {
   try {
-    const response = await fetch(`${BASE_URL}/${id}`, {
+    const response = await fetch(`${BASE_URL}/addStudent/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +42,7 @@ export const updateStudentPutApi = async (id, updatedData) => {
 };
 export const deleteLessonApi = async (studentId, lessonId) => {
   const payload = {studentId, lessonId};
-  return await axios.delete(`${BASE_URL}/lessons`, {
+  return await axios.delete(`${BASE_URL}/addStudent/lessons`, {
     data: payload,
   });
 };

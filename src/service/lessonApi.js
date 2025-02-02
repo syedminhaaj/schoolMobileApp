@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const BASE_URL = 'http://localhost:3000';
+import {BASE_URL} from './baseUrl';
+//const BASE_URL = 'http://localhost:3000';
 
 // Fetch all students
 export const getLessons = async () => {
